@@ -1,0 +1,20 @@
+peak
+J
+eps
+a
+d
+beta
+fulltime
+start
+stop
+teach = (sin, 2sin, saw)
+eps_setting = (random, no_random, static)
+hz1
+hz2
+step_G
+start_G
+stop_G
+step_Q
+start_Q
+stop_Q
+display_iteration

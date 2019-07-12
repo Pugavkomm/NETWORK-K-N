@@ -1,0 +1,22 @@
+startN = 93136
+stopN = 0
+stepN = 93136
+examples = 0
+G = 0
+Q = 0
+vpeak = 0
+eps_peak = 5.6114e-319
+J = 0.12
+eps = 0.0015
+a = 0.25
+d = 0.5
+beta = 0.04
+T = 40.5
+tmin = 10
+tcrit  =  40
+teach = 
+eps_parametr = 
+hz1 = 5.40903e-319
+hz2 = 5.6114e-319
+1/lambda = 0.01
+________________________
