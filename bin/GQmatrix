@@ -1,0 +1,67 @@
+
+type = sin(10pi)_dt_0_001
+dt = 0
+T = 20500
+tmin = 1
+tcrit  = 10000
+hz1 = 0
+hz2 = 0
+eps_setting = no_random
+name_program = GQmap
+N = 800
+vpeak = 0.2
+eps_peak = 0.6
+J = 0.15
+eps = 0.005
+a = 0.25
+d = 0.26
+beta = 0.018
+Gstart = 0.003
+Gstop = 0.01
+Gstep = 0.001
+Qstart = 0.03
+Qstop = 0.2
+Qstep = 0.01
+lambda = 0.01
+p = 0.1
+M = 1.01
+M1 = 1.95
+___________________________________
+G1:|Q1|Q2|Q3|Q4|...
+G2:|..|..|..|..|...
+G3:|..|..|..|..|...
+...................
+0.003: |0.03| 
+type = sin(10pi)_dt_0_001
+dt = 0
+T = 20500
+tmin = 1
+tcrit  = 10000
+hz1 = 0
+hz2 = 0
+eps_setting = no_random
+name_program = GQmap
+N = 800
+vpeak = 0.2
+eps_peak = 0.6
+J = 0.15
+eps = 0.005
+a = 0.25
+d = 0.26
+beta = 0.018
+Gstart = 0.003
+Gstop = 0.01
+Gstep = 0.001
+Qstart = 0.03
+Qstop = 0.2
+Qstep = 0.01
+lambda = 0.01
+p = 0.1
+M = 1.01
+M1 = 1.95
+___________________________________
+G1:|Q1|Q2|Q3|Q4|...
+G2:|..|..|..|..|...
+G3:|..|..|..|..|...
+...................
+0.003: |0.03| |0.04| 

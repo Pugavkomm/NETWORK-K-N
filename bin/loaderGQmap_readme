@@ -1,0 +1,20 @@
+name_program
+eps_setting (no_random; random; static)
+N
+vpeak
+eps_peak
+J
+eps
+a
+d
+beta
+Gstart
+Gstop
+Gstep
+Qstart
+Qstop
+Qstep
+p
+M
+M1
+lambda

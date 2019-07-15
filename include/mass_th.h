@@ -68,7 +68,16 @@ col(exchange(other.col, 0)),
 name(exchange(other.name, 0)),
 matrix(exchange(other.matrix, nullptr)){}
 
-
+mass_th slice(int rstart, int rstop, int cstart, int cstop)
+{
+  mass_th out((rstop - rstart), (cstop - cstart));
+  #pragma omp parallel
+  #pragma omp for
+  for (int i = rstart; i < rstop; i++)
+    for (int j = cstart; j < cstop; j++)
+      out.matrix[i - rstart][j - cstart] = matrix[i][j];
+  return out;
+}
 mass_th operator+(const mass_th& rigth_part) const
 {
 	if (row != rigth_part.row && col != rigth_part.col)
