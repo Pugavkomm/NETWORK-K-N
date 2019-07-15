@@ -72,6 +72,7 @@ void network_K_N::get_f_in(mass_th f_ini)
 {
     f_in = f_ini;
     dim_f_in = f_in.row;
+    BPhiin.resize(N, dim_f_in);
 }
 void network_K_N::get_time( int nti,  int imini,  int icriti, int step_interationi)
 {
@@ -152,10 +153,14 @@ void network_K_N::FORCE_learning()
     double start_time;
     mass_th error(dim_f_out, 1);
     mass_th zout(dim_f_out, 1);
+    
     for (int step_system = 0; step_system < nt; step_system++)
-    {
-				JX = E * zout + IPSC;
-				if (eps_setting == "random")
+    {               
+                if (dim_f_in == 0)
+				    JX = E * zout + IPSC;
+                else   
+                    JX = E * zout + IPSC + BPhiin * f_in.slice(0, dim_f_in, step_system, step_system + 1);
+                if (eps_setting == "random")
 					model_neuron_random_eps(v, I, JX, N, a, d, eps, beta, J, epsvar, vpeak, eps_peak);
 				else if(eps_setting == "static")
 					model_neuron_random_eps_static(v, I, JX, N, a, d, eps, beta, J, epsvar, vpeak);
@@ -163,8 +168,9 @@ void network_K_N::FORCE_learning()
 					model_neuron_no_random(v, I, JX, N, a, d, eps, beta, J, vpeak);
 				
 				model_synaps(h, r, hr, v, vpeak, IPSC, JD, N, M, M1);
+                
 				IPSC = OMEGA * r;
-				
+                
 				zout = (BPhi--) * r;
 				error =  zout - f_out.slice(0, dim_f_out, step_system, step_system + 1);
                 #pragma omp parallel
