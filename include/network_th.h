@@ -39,8 +39,11 @@ public:
 	mass_th epsvar;
 	mass_th save_error; // save error begin f_out and network output 
 	string eps_setting;
-	
+	network_K_N()
+	{}
     network_K_N(int N, double eps, double beta, double a, double d, double J);
+	void reinitialisation(int N, double eps, double beta, double a, 
+	double d, double J);
     void intialisation_FORCE_method(double G, double Q, double p, double lambda, double M, double M1, string eps_setting, double vpeak);
 	void special_omega_rand();
     void get_f_in(mass_th f_in);

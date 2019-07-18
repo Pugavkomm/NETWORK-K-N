@@ -22,8 +22,20 @@ double eps_peak, double J, double eps, double a, double d, double beta, double G
 double Gstop, double Gstep, double Qstart, double Qstop, double Qstep, double lambda, 
 double p, double M, double M1, int N);
 
+void display_lambda_and_write_file(string name_file, string eps_setting, 
+string name_programm, string name_teacher, int imin, int icrit, int nt, double vpeak,
+double eps_peak,double J, double eps, double a, double d, double beta, double G, 
+double Q, double lambdastart, double lambdastop, double lambda_step, double p, 
+double M, double M1, int N, int ex);
+
+void display_universal_and_write_file(string name_file, string parameter_name, int number_parameter, string eps_setting, 
+string name_programm, string name_teacher, int imin, int icrit, int nt, double vpeak,
+double eps_peak,double J, double eps, double a, double d, double beta, double G, 
+double Q, double start, double stop, double step, double p, double M, double M1, 
+int N, int ex, double lambda);
 int main(int argc, char* argv[])
 {
+    srand(time(0));
     string name_loader;
     string name_teacher;
     string name_f_in;
@@ -61,7 +73,7 @@ int main(int argc, char* argv[])
     getline(in, name_programm);
     getline(in, eps_setting);
     cout << "name_program:__ " << name_programm << endl;
-    
+    network_K_N model;
     if (name_programm == "standart")
     {
 
@@ -72,8 +84,7 @@ int main(int argc, char* argv[])
     in.close();
     display_standart_and_write_file("NONE", eps_setting, name_programm, name_teacher,
     imin, icrit, nt, vpeak, eps_peak, J, eps, a, d, beta, G, Q, lambda, p, M, M1, N);
-    network_K_N model(N, eps, beta, a, d, J);
-   
+    model.reinitialisation(N, eps, beta, a, d, J);
     model.get_f_out(teacher);
     if (dim_f_in > 0)
         model.get_f_in(f_in);
@@ -147,7 +158,7 @@ int main(int argc, char* argv[])
                     L2[i] = 0;
                 Q = iq;
                 cout << "G = " << G << ", Q = " << Q << '\n';
-                network_K_N model(N, eps, beta, a, d, J);
+                model.reinitialisation(N, eps, beta, a, d, J);
                 model.get_f_out(teacher);
                 if (dim_f_in > 0)
                     model.get_f_in(f_in);
@@ -291,7 +302,7 @@ int main(int argc, char* argv[])
         //            L2[i] = 0;
         //        Q = iq;
         //        cout << "G = " << G << ", Q = " << Q << '\n';
-        //        network_K_N model(N, eps, beta, a, d, J);
+        //        model.reinitialisation(N, eps, beta, a, d, J);
         //        model.get_f_out(teacher);
         //        if (dim_f_in > 0)
         //            model.get_f_in(f_in);
@@ -321,6 +332,148 @@ int main(int argc, char* argv[])
         //}
     }
 
+    if (name_programm == "lambda")
+    {
+        int ex;
+        double lambdastart, lambdastop, lambdastep;
+        in >> N;
+        in >> lambdastart; in >> lambdastop; in >> lambdastep;
+        in >> ex; in >> vpeak; in >> eps_peak;  in >> J; 
+        in >> eps; in >> a; in >> d;
+        in >> beta; in >> G; in >> Q;
+        in >> p; in >> M; in >> M1; 
+        in.close();
+        string name_file = "lambda_save";
+        display_lambda_and_write_file(name_file, eps_setting, name_programm, 
+        name_teacher, imin, icrit, nt, vpeak, eps_peak, J, eps, a, d, beta, G, Q, 
+        lambdastart, lambdastop, lambdastep, p, M, M1, N, ex);
+        double L2[dim_f_out];
+        //int lambdasteps = round((lambdastop - lambdastart) / lambdastep);
+        ofstream out;
+        cout << "Lambda_steps = " << round((-lambdastart + lambdastop)/lambdastop);
+        for (double ilambda = lambdastart; ilambda < lambdastop; ilambda += lambdastep)
+        {
+                lambda = ilambda;
+
+            for (int example = 0; example < ex; example++)
+            {
+                for (int j = 0; j < dim_f_out; j++)
+                    L2[j] = 0;
+                cout << "lambda = " << lambda << ", example = " << example << '\n';
+                model.reinitialisation(N, eps, beta, a, d, J);
+                model.get_f_out(teacher);
+                if (dim_f_in > 0)
+                    model.get_f_in(f_in);
+                model.intialisation_FORCE_method(G, Q, p, lambda, M, M1, eps_setting, vpeak);
+                model.get_time(nt, imin, icrit,  300);
+                model.display_parameters();
+                model.FORCE_learning();
+            
+                for (int i = icrit; i < nt; i++)
+                    for (int j = 0; j < dim_f_out; j++)
+                        {
+                            L2[j] += model.ret_error().matrix[j][i] * model.ret_error().matrix[j][i];
+                        }
+                out.open(name_file, ios::app);
+                for (int i = 0; i < dim_f_out; i++)
+                {
+                    out << L2[i] << ' ';
+                    cout << "L2" << i << " = " << L2[i] << '\n';
+                }
+                out.close();
+            }
+            out.open(name_file, ios::app);
+            out << '\n';
+            out.close();
+        }
+        }
+        if (name_programm == "universal")
+        {
+            double startstopstep[3];
+            double L2[dim_f_out];
+
+            int steps = (round((startstopstep[1] - startstopstep[0]) 
+            / startstopstep[2]));
+            string name_parameter;
+            getline(in, name_parameter);
+            cout << "name_parameter" << name_parameter << '\n';
+            int number_parameter;
+            if (name_parameter == "N")
+                number_parameter = 0;
+            else if (name_parameter == "eps")
+                number_parameter = 1;
+            else if (name_parameter == "beta")
+                number_parameter = 2;
+            else if (name_parameter == "a")
+                number_parameter = 3;
+            else if (name_parameter == "d")
+                number_parameter = 4;
+            else if (name_parameter == "J")
+                number_parameter = 5;
+            /*N - 0; eps - 1; beta - 2, a - 3, d - 4, J - 5*/
+            double parameters[6];
+            int ex;
+            in >> N;
+            in >> startstopstep[0]; in >> startstopstep[1]; in >> startstopstep[2];
+            in >> ex; in >> vpeak; in >> eps_peak;  in >> J; 
+            in >> eps; in >> a; in >> d;
+            in >> beta; in >> G; in >> Q;
+            in >> p; in >> M; in >> M1;  
+            in >> lambda;
+            parameters[0] = N; parameters[1] = eps;
+            parameters[2] = beta; parameters[3] = a;
+            parameters[4] = d; parameters[5] = J;
+            in.close();
+            ofstream out; 
+            string name_file = name_parameter + "_save";
+            display_universal_and_write_file(name_file, name_parameter, 
+            number_parameter, eps_setting, name_programm, 
+            name_teacher, imin, icrit, nt, vpeak, eps_peak,
+            J, eps, a, d, beta, G, Q, startstopstep[0], startstopstep[1],
+            startstopstep[2], p, M, M1, N, ex, lambda);
+
+            for (double step_parameter = startstopstep[0]; step_parameter < startstopstep[1];
+            step_parameter += startstopstep[2])
+            {
+                parameters[number_parameter] = step_parameter;
+                for (int i = 0; i < ex; i++)
+                    {
+                        for (int j = 0; j < dim_f_out; j++)
+                            L2[j] = 0;  
+                        model.reinitialisation((int)parameters[0], parameters[1], 
+                        parameters[2], parameters[3], parameters[4], parameters[5]);    
+                        model.get_f_out(teacher);
+                        if (dim_f_in > 0)
+                            model.get_f_in(f_in);
+                        model.intialisation_FORCE_method(G, Q, p, lambda, M, M1, eps_setting, vpeak);
+                        model.get_time(nt, imin, icrit,  300);
+                        model.display_parameters();
+                        model.FORCE_learning();
+                    
+                        for (int i = icrit; i < nt; i++)
+                            for (int j = 0; j < dim_f_out; j++)
+                                {
+                                    L2[j] += model.ret_error().matrix[j][i] * model.ret_error().matrix[j][i];
+                                }
+                        out.open(name_file, ios::app);
+                        for (int i = 0; i < dim_f_out; i++)
+                        {
+                            out << L2[i] << ' ';
+                            cout << "L2" << i << " = " << L2[i] << '\n';
+                        }
+                        out.close();
+                    }
+                    out.open(name_file, ios::app);
+                    out << '\n';
+                    out.close();
+                    
+            }
+            model.reinitialisation(N, eps, beta, a, d, J);
+            
+        }
+    
+
+    
     return 0;
 }
 
@@ -486,4 +639,130 @@ double p, double M, double M1, int N)
         file << "G1:|Q1|Q2|Q3|Q4|...\nG2:|..|..|..|..|...\nG3:|..|..|..|..|...\n";
         file << "...................\n";
         file.close();
+}
+
+void display_lambda_and_write_file(string name_file, string eps_setting, 
+string name_programm, string name_teacher, int imin, int icrit, int nt, double vpeak,
+double eps_peak,double J, double eps, double a, double d, double beta, double G, 
+double Q, double lambdastart, double lambdastop, double lambdastep, double p, double M,
+double M1, int N, int ex)
+{
+    cout 
+        << "type = " << name_teacher << '\n'
+        << "eps_setting = " << eps_setting << '\n'
+        << "name_program = " << name_programm << '\n'
+        << "N = " << N << '\n'
+        << "vpeak = " << vpeak << '\n'
+        << "eps_peak = " << eps_peak << '\n'
+        << "J = " << J << '\n'
+        << "eps = " << eps << '\n'
+        << "a = " << a << '\n'
+        << "d = " << d << '\n'
+        << "beta = " << beta << '\n'
+        << "lambdastart = " << lambdastart << '\n'
+        << "lambdastop = " << lambdastop << '\n'
+        << "lambdastep = " << lambdastep << '\n'
+        << "p = " << p << '\n'
+        << "M = " << M << '\n'
+        << "M1 = " << M1 << '\n'
+        << "G = " << G << '\n'
+        << "Q = " << Q << '\n'
+        << "example = " << ex << '\n'
+        << "icrit = " << icrit << '\n'
+        << "imin = " << imin << '\n'
+        << "nt = " << nt << '\n';
+    ofstream file;
+    file.open(name_file, ios::app);
+    file 
+        << "type = " << name_teacher << '\n'
+        << "eps_setting = " << eps_setting << '\n'
+        << "name_program = " << name_programm << '\n'
+        << "N = " << N << '\n'
+        << "vpeak = " << vpeak << '\n'
+        << "eps_peak = " << eps_peak << '\n'
+        << "J = " << J << '\n'
+        << "eps = " << eps << '\n'
+        << "a = " << a << '\n'
+        << "d = " << d << '\n'
+        << "beta = " << beta << '\n'
+        << "lambdastart = " << lambdastart << '\n'
+        << "lambdastop = " << lambdastop << '\n'
+        << "lambdastep = " << lambdastep << '\n'
+        << "p = " << p << '\n'
+        << "M = " << M << '\n'
+        << "M1 = " << M1 << '\n'
+        << "G = " << G << '\n'
+        << "Q = " << Q << '\n'
+        << "example = " << ex << '\n'
+        << "icrit = " << icrit << '\n'
+        << "imin = " << imin << '\n'
+        << "nt = " << nt << '\n';
+        file << "________________________________\n";
+    file.close();
+}
+
+void display_universal_and_write_file(string name_file, string parameter_name, int number_parameter, string eps_setting, 
+string name_programm, string name_teacher, int imin, int icrit, int nt, double vpeak,
+double eps_peak,double J, double eps, double a, double d, double beta, double G, 
+double Q, double start, double stop, double step, double p, double M, double M1, 
+int N, int ex, double lambda)
+{
+    cout 
+        << "type = " << name_teacher << '\n'
+        << "eps_setting = " << eps_setting << '\n'
+        << "name_program = " << name_programm << '\n'
+        << "N = " << N << '\n'
+        << "vpeak = " << vpeak << '\n'
+        << "eps_peak = " << eps_peak << '\n'
+        << "J = " << J << '\n'
+        << "eps = " << eps << '\n'
+        << "a = " << a << '\n'
+        << "d = " << d << '\n'
+        << "beta = " << beta << '\n'
+        << parameter_name
+        << "start = " << start << '\n'
+        << parameter_name
+        << "stop = " << stop << '\n'
+        << parameter_name
+        << "step = " << step << '\n'
+        << "p = " << p << '\n'
+        << "M = " << M << '\n'
+        << "M1 = " << M1 << '\n'
+        << "G = " << G << '\n'
+        << "Q = " << Q << '\n'
+        << "lambda = " << lambda << '\n'
+        << "example = " << ex << '\n'
+        << "icrit = " << icrit << '\n'
+        << "imin = " << imin << '\n'
+        << "nt = " << nt << '\n';
+    ofstream file(name_file, ios::app);
+    file
+        << "type = " << name_teacher << '\n'
+        << "eps_setting = " << eps_setting << '\n'
+        << "name_program = " << name_programm << '\n'
+        << "N = " << N << '\n'
+        << "vpeak = " << vpeak << '\n'
+        << "eps_peak = " << eps_peak << '\n'
+        << "J = " << J << '\n'
+        << "eps = " << eps << '\n'
+        << "a = " << a << '\n'
+        << "d = " << d << '\n'
+        << "beta = " << beta << '\n'
+        << parameter_name
+        << "start = " << start << '\n'
+        << parameter_name
+        << "stop = " << stop << '\n'
+        << parameter_name
+        << "step = " << step << '\n'
+        << "p = " << p << '\n'
+        << "M = " << M << '\n'
+        << "M1 = " << M1 << '\n'
+        << "G = " << G << '\n'
+        << "Q = " << Q << '\n'
+        << "lambda = " << lambda << '\n'
+        << "example = " << ex << '\n'
+        << "icrit = " << icrit << '\n'
+        << "imin = " << imin << '\n'
+        << "nt = " << nt << '\n';
+    file.close();
 }
