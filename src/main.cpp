@@ -35,6 +35,7 @@ double Q, double start, double stop, double step, double p, double M, double M1,
 int N, int ex, double lambda);
 int main(int argc, char* argv[])
 {
+    omp_set_num_threads(5);
     srand(time(0));
     string name_loader;
     string name_teacher;
@@ -97,7 +98,9 @@ int main(int argc, char* argv[])
    
     for (int i = 0; i < nt; i++)
     {
-        out << model.ret_error().matrix[0][i] << '\n';
+        for (int j = 0; j < dim_f_out; j++)
+            out << model.ret_error().matrix[j][i] << ' ' ;
+            out << '\n';
     }
     out.close();
     //outer.display_m();

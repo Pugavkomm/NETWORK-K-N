@@ -198,9 +198,8 @@ void network_K_N::FORCE_learning()
 				if (step_system > imin && step_system < icrit)
 				{
                     cd = Pinv * r;
-                    BPhi -= (cd * error);
+                    BPhi -= (cd * error--);
                     
-
 					Pinv -= (cd * cd--) / (1.0 + (r-- * cd).ret(0, 0));
 				}
 				if (step_system % step_iteration == 0)
